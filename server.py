@@ -16,7 +16,7 @@ sys.path.insert(0, str(APP_DIR))
 
 import mn_model
 
-PORT = 8501
+PORT = int(os.environ.get('PORT', 8501))
 
 class MicroneedleHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -72,9 +72,9 @@ class MicroneedleHandler(SimpleHTTPRequestHandler):
 
 
 def run():
-    server_address = ('', PORT)
+    server_address = ('0.0.0.0', PORT)
     httpd = HTTPServer(server_address, MicroneedleHandler)
-    print(f"TransDerm.AI Predictor Server running at http://localhost:{PORT}")
+    print(f"TransDerm.AI Predictor Server running on port {PORT}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
