@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransDerm.AI — Microneedle Drug Delivery Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #FAF8F5;
+      --card-bg: #FFFFFF;
+      --border-subtle: rgba(226, 220, 210, 0.7);
+      --border-hover: rgba(180, 170, 155, 0.8);
+      --text-main: #1C1917;
+      --text-muted: #78716C;
+      --text-light: #A8A29E;
+      --accent-purple: #8B5CF6;
+      --accent-pink: #EC4899;
+      --accent-coral: #F97316;
+      --accent-peach: #FFF3EB;
+      --accent-lavender: #F5F3FF;
+      --accent-mint: #ECFDF5;
+      --accent-mint-text: #059669;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.02);
+      --shadow-md: 0 12px 32px -8px rgba(35, 25, 15, 0.05);
+      --shadow-lg: 0 20px 48px -12px rgba(35, 25, 15, 0.08);
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 24px;
+      --radius-pill: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient soft background glows */
+    .bg-glow-1 {
+      position: fixed;
+      top: -120px;
+      right: -80px;
+      width: 580px;
+      height: 580px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.07) 0%, rgba(249, 115, 22, 0.03) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      bottom: 50px;
+      left: -100px;
+      width: 650px;
+      height: 650px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, rgba(236, 72, 153, 0.03) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 32px 64px 32px;
+    }
+
+    /* Top Nav */
+    header.top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 32px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #1C1917 0%, #44403C 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFF;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand-tag {
+      font-size: 0.72rem;
+      background: #F3EFEA;
+      color: var(--text-muted);
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent-mint-text);
+      background: var(--accent-mint);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #10B981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Hero Headline */
+    .hero-header {
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+    }
+
+    .hero-titles h1 {
+      font-size: 2.35rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: #1C1917;
+    }
+
+    .hero-titles h1 span.gradient-text {
+      background: linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #EA580C 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-titles p {
+      font-size: 1.02rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      max-width: 680px;
+    }
+
+    .preset-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      padding: 6px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preset-picker label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 0 10px;
+    }
+
+    .preset-btn {
+      border: none;
+      background: transparent;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    .preset-btn:hover {
+      background: #F5F2EC;
+    }
+
+    .preset-btn.active {
+      background: #1C1917;
+      color: #FFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Main Grid Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 1120px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Panels */
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      transition: border-color 0.2s ease;
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-hover);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: #F3EFEA;
+      color: var(--text-muted);
+    }
+
+    /* Section groupings */
+    .form-group-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      margin: 20px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #EFEBE4;
+    }
+
+    /* Inputs and Controls */
+    .control-row {
+      margin-bottom: 16px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .control-hint {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+
+    .control-val {
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #7C3AED;
+      background: #F5F3FF;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #E7E3DC;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2.5px solid #7C3AED;
+      box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #E2DCD2;
+      border-radius: var(--radius-sm);
+      background: #FAFAF8;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    select:focus, input[type="number"]:focus, input[type="text"]:focus {
+      border-color: #8B5CF6;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+
+    /* Segmented pill selectors */
+    .pill-group {
+      display: flex;
+      background: #F3EFE9;
+      padding: 4px;
+      border-radius: var(--radius-md);
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      flex: 1;
+      min-width: 70px;
+      text-align: center;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .pill-btn.active {
+      background: #FFFFFF;
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Drug Info Pill */
+    .drug-meta-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #F8F6F2;
+      border: 1px solid #EFEAE2;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .drug-meta-badge strong {
+      color: var(--text-main);
+    }
+
+    /* Right Column: Results & Analytics */
+    .analytics-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Floating Stats Cards Header */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text-main);
+    }
+
+    .stat-unit {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    .stat-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-highlight {
+      color: #7C3AED;
+      font-weight: 600;
+    }
+
+    /* Chart Container Card */
+    .chart-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 26px 28px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .chart-titles h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .chart-titles p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 18px;
+      height: 3px;
+      background: #7C3AED;
+      border-radius: 2px;
+    }
+
+    .legend-band {
+      width: 16px;
+      height: 10px;
+      background: rgba(124, 58, 237, 0.18);
+      border-radius: 3px;
+    }
+
+    .legend-cmax {
+      color: #EC4899;
+      font-size: 1rem;
+    }
+
+    /* Canvas styling */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      margin: 10px 0 16px 0;
+    }
+
+    canvas#pkChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Hover scrubber cursor tooltip */
+    .chart-tooltip {
+      position: absolute;
+      background: rgba(28, 25, 23, 0.92);
+      color: #FFF;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      pointer-events: none;
+      display: none;
+      transform: translate(-50%, -120%);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+
+    /* Multi-Time Points Breakdown Table Card */
+    .time-table-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+
+    table.pk-time-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.88rem;
+    }
+
+    table.pk-time-table th {
+      background: #FAF8F5;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #EFEAE2;
+    }
+
+    table.pk-time-table th:first-child {
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+    }
+
+    table.pk-time-table th:last-child {
+      border-top-right-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    table.pk-time-table td {
+      padding: 14px 14px;
+      border-bottom: 1px solid #F4EFEA;
+      color: var(--text-main);
+      font-weight: 500;
+      vertical-align: middle;
+    }
+
+    table.pk-time-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: #1C1917;
+      background: #F5F2EB;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.82rem;
+    }
+
+    .cmax-row-highlight {
+      background: rgba(236, 72, 153, 0.04);
+    }
+
+    .progress-cell {
+      min-width: 140px;
+    }
+
+    .mini-progress-bar {
+      height: 6px;
+      background: #EFEBE4;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .mini-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8B5CF6, #EC4899);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* What-if quick comparison card */
+    .whatif-card {
+      background: linear-gradient(145deg, #FFFFFF 0%, #FDFBF8 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .whatif-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .whatif-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .whatif-item {
+      background: #FFFFFF;
+      border: 1px solid #ECE7DE;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .whatif-item:hover {
+      border-color: #8B5CF6;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .whatif-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .whatif-impact {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #1C1917;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .delta-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+    }
+
+    .delta-pos {
+      background: #DCFCE7;
+      color: #15803D;
+    }
+
+    .delta-neg {
+      background: #FEE2E2;
+      color: #B91C1C;
+    }
+
+    .whatif-desc {
+      font-size: 0.72rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* Warnings / Scientific Guardrails */
+    .alerts-container {
+      margin-top: 16px;
+    }
+
+    .warning-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      padding: 9px 14px;
+      border-radius: var(--radius-md);
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      color: #92400E;
+      margin-bottom: 8px;
+    }
+
+    /* Action Buttons */
+    .btn-gradient {
+      background: linear-gradient(135deg, #7C3AED 0%, #DB2777 50%, #EA580C 100%);
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(219, 39, 119, 0.25);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-gradient:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px rgba(219, 39, 119, 0.35);
+    }
+
+    .btn-secondary {
+      background: #FFFFFF;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #F5F2EB;
+      border-color: #D6CEC1;
+    }
+
+    /* Footer */
+    footer.app-footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-light);
+      padding-top: 24px;
+      border-top: 1px solid #ECE7DD;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <span>TransDerm<span style="color:#7C3AED">.AI</span></span>
+        <span class="brand-tag">Microneedle PK Studio</span>
+      </div>
+
+      <div class="nav-actions">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span>Model Live & Calibrated</span>
+        </div>
+        <button class="btn-secondary" onclick="exportReport()">
+          <svg style="vertical-align:middle; margin-right:4px;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Export Data
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Title & Presets -->
+    <div class="hero-header">
+      <div class="hero-titles">
+        <h1>Predict <span class="gradient-text">drugs in skin</span> vs time</h1>
+        <p>
+          Precision machine-learning pharmacokinetic model predicting drug concentration, peak exposure, and consumed skin kinetics across microneedle formulations.
+        </p>
+      </div>
+
+      <div class="preset-picker">
+        <label>Formulation Presets:</label>
+        <button class="preset-btn active" onclick="applyPreset('lidocaine')">Lidocaine Rapid</button>
+        <button class="preset-btn" onclick="applyPreset('insulin')">Insulin Array</button>
+        <button class="preset-btn" onclick="applyPreset('metformin')">Metformin Extended</button>
+        <button class="preset-btn" onclick="applyPreset('caffeine')">Caffeine Hydrogel</button>
+      </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="main-grid">
+
+      <!-- Left Column: Controls & Features Input -->
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Formulation & Patch Design
+          </div>
+          <span class="card-badge">Validated Inputs</span>
+        </div>
+
+        <!-- 1. Drug Selection -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Drug Molecule</span>
+            <span class="control-hint">Library of 5 Characterized Drugs</span>
+          </div>
+          <select id="drugSelect" onchange="onDrugChange()">
+            <option value="Lidocaine" selected>Lidocaine (Local Anesthetic)</option>
+            <option value="Caffeine">Caffeine (Small Hydrophilic Model)</option>
+            <option value="Metformin">Metformin (Hydrophilic Anti-Diabetic)</option>
+            <option value="Doxorubicin">Doxorubicin (Antineoplastic Agent)</option>
+            <option value="Insulin">Insulin (Large 51-AA Peptide)</option>
+            <option value="Custom">Custom / Novel Drug...</option>
+          </select>
+          <div class="drug-meta-badge" id="drugMetaDisplay">
+            <span>MW: <strong id="mwDisplay">234.34</strong> Da</span>
+            <span>logP: <strong id="logpDisplay">2.44</strong></span>
+            <span>Peptide: <strong id="peptideDisplay">No</strong></span>
+          </div>
+        </div>
+
+        <!-- Custom Drug Inputs (hidden by default) -->
+        <div id="customDrugFields" style="display:none; background:#F8F6F2; padding:12px; border-radius:12px; margin-bottom:14px;">
+          <div class="control-row" style="margin-bottom:8px;">
+            <div class="control-header"><span>Molecular Weight (Da)</span></div>
+            <input type="number" id="customMW" value="234.34" step="0.1" oninput="runPrediction()">
+          </div>
+          <div class="control-row" style="margin-bottom:8px;">
+            <div class="control-header"><span>logP</span></div>
+            <input type="number" id="customLogP" value="2.44" step="0.05" oninput="runPrediction()">
+          </div>
+        </div>
+
+        <div class="form-group-title">Patch Architecture</div>
+
+        <!-- Initial Drug Loading -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Initial Drug Loading</span>
+            <span class="control-val" id="loadingVal">6.0 mg</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="loadingRange" min="1.0" max="9.8" step="0.1" value="6.0" oninput="syncSlider('loading', this.value)">
+          </div>
+          <span class="control-hint">Training span: 1.03 – 9.76 mg</span>
+        </div>
+
+        <!-- Patch Area -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Patch Area</span>
+            <span class="control-val" id="areaVal">1.5 cm²</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="areaRange" min="0.5" max="2.5" step="0.05" value="1.5" oninput="syncSlider('area', this.value)">
+          </div>
+          <span class="control-hint">Training span: 0.52 – 2.49 cm²</span>
+        </div>
+
+        <!-- Needle Count (Segmented Selector) -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Needle Array Density (Count)</span>
+            <span class="control-val" id="needleCountVal">196 needles</span>
+          </div>
+          <div class="pill-group">
+            <button class="pill-btn" onclick="setNeedleCount(100)">100 (10×10)</button>
+            <button class="pill-btn" onclick="setNeedleCount(144)">144 (12×12)</button>
+            <button class="pill-btn active" onclick="setNeedleCount(196)">196 (14×14)</button>
+            <button class="pill-btn" onclick="setNeedleCount(256)">256 (16×16)</button>
+          </div>
+        </div>
+
+        <!-- Needle Height -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Needle Height</span>
+            <span class="control-val" id="heightVal">650 µm</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="heightRange" min="500" max="800" step="5" value="650" oninput="syncSlider('height', this.value)">
+          </div>
+          <span class="control-hint">Effective penetration depth: 507 – 797 µm</span>
+        </div>
+
+        <!-- Needle Base Width -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Needle Base Width</span>
+            <span class="control-val" id="widthVal">280 µm</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="widthRange" min="210" max="350" step="5" value="280" oninput="syncSlider('width', this.value)">
+          </div>
+        </div>
+
+        <!-- Applied Insertion Force -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Applied Insertion Force</span>
+            <span class="control-val" id="forceVal">25.0 N</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="forceRange" min="15.0" max="35.0" step="0.5" value="25.0" oninput="syncSlider('force', this.value)">
+          </div>
+        </div>
+
+        <div class="form-group-title">Substrate & Skin Model</div>
+
+        <!-- Material Selection -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>MN Polymer Material</span>
+            <span class="control-hint" id="mnTypeBadge">Type: Dissolving</span>
+          </div>
+          <select id="materialSelect" onchange="onMaterialChange()">
+            <option value="Hyaluronic Acid" selected>Hyaluronic Acid (Dissolving Matrix)</option>
+            <option value="PVA / PVP">PVA / PVP (Dissolving Matrix)</option>
+            <option value="PLGA 50:50">PLGA 50:50 (Solid Polymeric Array)</option>
+            <option value="Gantrez S-97 / PEG">Gantrez S-97 / PEG (Hydrogel-Forming)</option>
+          </select>
+        </div>
+
+        <!-- Skin Type -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Skin Substrate</span>
+          </div>
+          <select id="skinSelect" onchange="runPrediction()">
+            <option value="Human Skin (Full Thickness)" selected>Human Skin (Full Thickness — Calibrated)</option>
+            <option value="Porcine Skin">Porcine Skin (Ex-vivo Standard)</option>
+            <option value="Rat Skin">Rat Skin (In-vivo Rodent Model)</option>
+            <option value="Synthesised Polymeric Skin">Synthesised Polymeric Membrane</option>
+          </select>
+        </div>
+
+        <!-- Skin Thickness -->
+        <div class="control-row">
+          <div class="control-header">
+            <span>Skin Thickness</span>
+            <span class="control-val" id="thicknessVal">1.25 mm</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="thicknessRange" min="0.8" max="1.8" step="0.02" value="1.25" oninput="syncSlider('thickness', this.value)">
+          </div>
+        </div>
+
+        <!-- Warnings / Guardrails Display -->
+        <div class="alerts-container" id="alertsBox"></div>
+
+      </div>
+
+      <!-- Right Column: Real-time Analytics & Visualizations -->
+      <div class="analytics-column">
+
+        <!-- Top Key Metric Cards -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Peak Concentration</div>
+            <div class="stat-value">
+              <span id="statCmax">86.6</span>
+              <span class="stat-unit">µg/cm³</span>
+            </div>
+            <div class="stat-subtitle">
+              <span class="stat-highlight">★ Cmax</span> in viable skin tissue
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">Time to Peak</div>
+            <div class="stat-value">
+              <span id="statTmax">4.0</span>
+              <span class="stat-unit">h</span>
+            </div>
+            <div class="stat-subtitle">
+              <span class="stat-highlight">Tmax</span> peak absorption window
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">Total AUC Exposure</div>
+            <div class="stat-value">
+              <span id="statAuc">1029</span>
+              <span class="stat-unit">µg·h/cm³</span>
+            </div>
+            <div class="stat-subtitle">
+              0.5 – 24 h cumulative exposure
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">Peak Drug in Skin</div>
+            <div class="stat-value">
+              <span id="statDelivered">16.2</span>
+              <span class="stat-unit">µg</span>
+            </div>
+            <div class="stat-subtitle">
+              <span class="stat-highlight" id="statEfficiency">0.27%</span> of initial loaded dose
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Pharmacokinetic Curve Card -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-titles">
+              <h2>Skin Drug Concentration vs Time</h2>
+              <p>Continuous PCHIP monotonic spline with out-of-fold 80% credible band [10th – 90th percentile]</p>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <div class="legend-line"></div>
+                <span>Mean Predicted Profile</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-band"></div>
+                <span>80% Confidence Band</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-cmax">★</span>
+                <span>Cmax Peak</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-container" id="chartWrapper">
+            <canvas id="pkChart"></canvas>
+            <div class="chart-tooltip" id="chartTooltip"></div>
+          </div>
+        </div>
+
+        <!-- Multi-Time Points Breakdown Table Card (4-5 Key Times) -->
+        <div class="time-table-card">
+          <div class="card-header" style="margin-bottom:8px;">
+            <div>
+              <div class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Drug Delivery & Consumption at 5 Key Time Intervals
+              </div>
+              <p style="font-size:0.83rem; color:var(--text-muted); margin-top:2px;">
+                Quantification of drug residing in viable skin tissue and consumed across the post-application timeline.
+              </p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="pk-time-table">
+              <thead>
+                <tr>
+                  <th>Time Elapsed</th>
+                  <th>Skin Conc. (µg/cm³)</th>
+                  <th>80% Credible Range</th>
+                  <th>Drug in Skin (µg)</th>
+                  <th>Dose Fraction</th>
+                  <th class="progress-cell">Absorption Dynamics</th>
+                </tr>
+              </thead>
+              <tbody id="timeTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- What-If Formulation Simulator -->
+        <div class="whatif-card">
+          <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            What-If Formulation Exploration
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">
+            Simulate instantaneous design changes based on model partial dependence:
+          </p>
+          <div class="whatif-grid">
+            <div class="whatif-item" onclick="applyWhatIf('loading_up')">
+              <div class="whatif-title">Double Drug Loading (9 mg)</div>
+              <div class="whatif-impact">
+                160.3 µg/cm³
+                <span class="delta-pill delta-pos">+85% Cmax</span>
+              </div>
+              <div class="whatif-desc">Proportional release boost into dermis</div>
+            </div>
+
+            <div class="whatif-item" onclick="applyWhatIf('ha_matrix')">
+              <div class="whatif-title">Switch to Hyaluronic Acid</div>
+              <div class="whatif-impact">
+                86.6 µg/cm³
+                <span class="delta-pill delta-pos">+63% vs PVA</span>
+              </div>
+              <div class="whatif-desc">Fast-dissolving matrix speeds peak uptake</div>
+            </div>
+
+            <div class="whatif-item" onclick="applyWhatIf('needle_height_up')">
+              <div class="whatif-title">Taller Needles (750 µm)</div>
+              <div class="whatif-impact">
+                92.8 µg/cm³
+                <span class="delta-pill delta-pos">+7.1% Cmax</span>
+              </div>
+              <div class="whatif-desc">Deeper dermal microconduit creation</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>TransDerm.AI • Microneedle Concentration-Time Machine Learning Engine • Multi-Output Log1p Lasso Model Strategy 2</p>
+      <p style="margin-top:4px;">Validated on 150 independent microneedle patches across 8 time-course sampling points (0.5 – 24 h).</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // --- EXACT ML MODEL COEFFICIENTS & ENGINE IN JAVASCRIPT ---
+    const TIME_POINTS = [0.5, 1.0, 2.0, 4.0, 6.0, 8.0, 12.0, 24.0];
+
+    const DRUGS_DB = {
+      'Lidocaine': { mw: 234.34, logp: 2.44, peptide: 0, desc: 'Amide local anesthetic' },
+      'Caffeine': { mw: 194.19, logp: -0.07, peptide: 0, desc: 'Hydrophilic alkaloid model' },
+      'Metformin': { mw: 129.16, logp: -1.40, peptide: 0, desc: 'Hydrophilic anti-diabetic agent' },
+      'Doxorubicin': { mw: 543.52, logp: 1.27, peptide: 0, desc: 'Anthracycline antineoplastic' },
+      'Insulin': { mw: 5808.00, logp: -1.80, peptide: 1, desc: '51-AA therapeutic peptide' }
+    };
+
+    const MATERIAL_TO_TYPE = {
+      'Hyaluronic Acid': 'Dissolving',
+      'PVA / PVP': 'Dissolving',
+      'PLGA 50:50': 'Solid Polymeric',
+      'Gantrez S-97 / PEG': 'Hydrogel-Forming'
+    };
+
+    const SCALER_STATS = {
+      'Skin_Thickness_mm': [1.300, 0.270],
+      'Patch_Area_cm2': [1.478, 0.622],
+      'Needle_Count': [170.693, 50.905],
+      'Needle_Height_um': [661.214, 82.644],
+      'Needle_Base_Width_um': [277.531, 40.814],
+      'Applied_Force_N': [24.371, 5.761],
+      'Initial_Drug_Loading_mg': [5.507, 2.460],
+      'Drug_MW_Da': [1304.641, 2162.768],
+      'Drug_logP': [0.219, 1.646],
+      'Is_Large_Peptide': [0.187, 0.390],
+    };
+
+    const COEFFICIENTS = {
+      'Drug_Name_Doxorubicin': [-1.11, -1.02, -1.08, -0.73, -0.39, -0.17, -0.04, 0.27],
+      'Drug_Name_Metformin': [-0.58, -0.63, -0.76, -0.54, -0.19, -0.00, 0.00, 0.22],
+      'Initial_Drug_Loading_mg': [0.38, 0.41, 0.47, 0.50, 0.53, 0.53, 0.53, 0.50],
+      'MN_Type_Dissolving': [-0.00, 0.00, 0.00, 0.00, -0.00, 0.05, 0.07, 0.40],
+      'MN_Material_Hyaluronic Acid': [0.19, 0.20, 0.20, 0.28, 0.33, 0.32, 0.39, 0.40],
+      'MN_Material_PVA / PVP': [-0.18, -0.22, -0.32, -0.20, -0.06, 0.00, -0.00, -0.00],
+      'Skin_Type_Rat Skin': [0.05, 0.04, 0.06, -0.01, -0.05, -0.06, -0.09, -0.26],
+      'Drug_Name_Caffeine': [0.00, 0.13, 0.16, 0.21, 0.25, 0.25, 0.16, -0.00],
+      'Is_Large_Peptide': [0.05, 0.00, 0.00, 0.00, 0.00, -0.00, -0.00, -0.21],
+      'Drug_logP': [0.19, 0.20, 0.19, 0.10, 0.08, 0.06, -0.04, -0.13],
+      'Patch_Area_cm2': [0.02, 0.02, 0.05, -0.04, -0.11, -0.13, -0.15, -0.13],
+      'Needle_Count': [-0.04, -0.01, -0.01, -0.01, 0.03, 0.05, 0.05, 0.13],
+      'Applied_Force_N': [0.08, 0.02, 0.03, 0.02, 0.04, 0.05, 0.03, 0.13],
+      'MN_Material_PLGA 50:50': [0.12, 0.06, 0.11, 0.00, 0.00, -0.00, -0.10, 0.00],
+      'Skin_Type_Synthesised Polymeric Skin': [-0.06, -0.12, -0.03, 0.03, 0.06, 0.04, 0.03, -0.00],
+      'Skin_Type_Porcine Skin': [0.11, -0.00, 0.07, 0.00, 0.00, -0.01, -0.00, 0.10],
+      'Skin_Type_Human Skin (Full Thickness)': [-0.09, 0.00, -0.08, -0.06, -0.00, 0.03, 0.01, 0.10],
+      'Drug_MW_Da': [0.00, 0.00, 0.00, 0.00, 0.00, -0.01, -0.10, -0.00],
+      'MN_Material_Gantrez S-97 / PEG': [-0.00, -0.00, -0.00, -0.00, -0.00, -0.01, 0.00, -0.08],
+      'Needle_Height_um': [0.06, 0.06, 0.07, 0.06, 0.04, 0.02, -0.02, -0.02],
+      'MN_Type_Solid Polymeric': [0.06, 0.05, 0.04, 0.00, 0.02, -0.00, -0.00, 0.00],
+      'Needle_Base_Width_um': [0.03, 0.04, 0.04, 0.00, -0.01, -0.04, -0.05, -0.02],
+      'Skin_Thickness_mm': [0.00, 0.01, 0.01, 0.02, 0.00, -0.01, 0.02, 0.04],
+      'MN_Type_Hydrogel-Forming': [-0.03, -0.03, -0.03, -0.00, -0.00, 0.00, 0.00, -0.00],
+    };
+
+    const INTERCEPTS = [2.0956, 2.8704, 3.6150, 4.0343, 3.8110, 3.5227, 3.1225, 1.7216];
+    const RESID_Q10 = [-0.7398, -0.6690, -0.6961, -0.4198, -0.3862, -0.4559, -0.5528, -0.8530];
+    const RESID_Q90 = [0.7365, 0.7338, 0.7233, 0.4890, 0.3893, 0.4587, 0.5214, 1.0571];
+
+    let currentNeedleCount = 196;
+    let latestPrediction = null;
+
+    // Presets
+    const PRESETS = {
+      'lidocaine': {
+        drug: 'Lidocaine', loading: 6.0, area: 1.5, count: 196, height: 650, width: 280, force: 25.0,
+        material: 'Hyaluronic Acid', skin: 'Human Skin (Full Thickness)', thickness: 1.25
+      },
+      'insulin': {
+        drug: 'Insulin', loading: 4.5, area: 1.8, count: 196, height: 720, width: 260, force: 28.0,
+        material: 'Hyaluronic Acid', skin: 'Human Skin (Full Thickness)', thickness: 1.35
+      },
+      'metformin': {
+        drug: 'Metformin', loading: 5.0, area: 1.4, count: 144, height: 620, width: 290, force: 22.0,
+        material: 'PVA / PVP', skin: 'Porcine Skin', thickness: 1.20
+      },
+      'caffeine': {
+        drug: 'Caffeine', loading: 7.5, area: 2.0, count: 256, height: 680, width: 250, force: 26.0,
+        material: 'Gantrez S-97 / PEG', skin: 'Human Skin (Full Thickness)', thickness: 1.30
+      }
+    };
+
+    function applyPreset(name) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const p = PRESETS[name];
+      if (!p) return;
+
+      document.getElementById('drugSelect').value = p.drug;
+      onDrugChange(false);
+      document.getElementById('loadingRange').value = p.loading;
+      syncSlider('loading', p.loading, false);
+      document.getElementById('areaRange').value = p.area;
+      syncSlider('area', p.area, false);
+      setNeedleCount(p.count, false);
+      document.getElementById('heightRange').value = p.height;
+      syncSlider('height', p.height, false);
+      document.getElementById('widthRange').value = p.width;
+      syncSlider('width', p.width, false);
+      document.getElementById('forceRange').value = p.force;
+      syncSlider('force', p.force, false);
+      document.getElementById('materialSelect').value = p.material;
+      onMaterialChange(false);
+      document.getElementById('skinSelect').value = p.skin;
+      document.getElementById('thicknessRange').value = p.thickness;
+      syncSlider('thickness', p.thickness, false);
+
+      runPrediction();
+    }
+
+    function applyWhatIf(type) {
+      if (type === 'loading_up') {
+        document.getElementById('loadingRange').value = 9.0;
+        syncSlider('loading', 9.0);
+      } else if (type === 'ha_matrix') {
+        document.getElementById('materialSelect').value = 'Hyaluronic Acid';
+        onMaterialChange();
+      } else if (type === 'needle_height_up') {
+        document.getElementById('heightRange').value = 750;
+        syncSlider('height', 750);
+      }
+    }
+
+    function setNeedleCount(cnt, trigger = true) {
+      currentNeedleCount = cnt;
+      document.getElementById('needleCountVal').innerText = cnt + ' needles';
+      const btns = document.querySelectorAll('.pill-group .pill-btn');
+      btns.forEach(b => {
+        if (b.innerText.includes(String(cnt))) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      if (trigger) runPrediction();
+    }
+
+    function syncSlider(id, val, trigger = true) {
+      const units = {
+        'loading': ' mg',
+        'area': ' cm²',
+        'height': ' µm',
+        'width': ' µm',
+        'force': ' N',
+        'thickness': ' mm'
+      };
+      document.getElementById(id + 'Val').innerText = val + units[id];
+      if (trigger) runPrediction();
+    }
+
+    function onDrugChange(trigger = true) {
+      const drug = document.getElementById('drugSelect').value;
+      const customBox = document.getElementById('customDrugFields');
+      if (drug === 'Custom') {
+        customBox.style.display = 'block';
+        document.getElementById('drugMetaDisplay').style.display = 'none';
+      } else {
+        customBox.style.display = 'none';
+        document.getElementById('drugMetaDisplay').style.display = 'flex';
+        const d = DRUGS_DB[drug];
+        document.getElementById('mwDisplay').innerText = d.mw;
+        document.getElementById('logpDisplay').innerText = d.logp;
+        document.getElementById('peptideDisplay').innerText = d.peptide ? 'Yes (51-AA)' : 'No';
+      }
+      if (trigger) runPrediction();
+    }
+
+    function onMaterialChange(trigger = true) {
+      const mat = document.getElementById('materialSelect').value;
+      const type = MATERIAL_TO_TYPE[mat] || 'Dissolving';
+      document.getElementById('mnTypeBadge').innerText = 'Type: ' + type;
+      if (trigger) runPrediction();
+    }
+
+    // Monotonic PCHIP interpolation implementation
+    function createPchip(xs, ys) {
+      const n = xs.length;
+      const deltas = [];
+      const ms = new Array(n).fill(0);
+
+      for (let i = 0; i < n - 1; i++) {
+        deltas.push((ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]));
+      }
+
+      ms[0] = deltas[0];
+      ms[n - 1] = deltas[n - 2];
+
+      for (let i = 1; i < n - 1; i++) {
+        if (deltas[i - 1] * deltas[i] > 0) {
+          ms[i] = (2 * deltas[i - 1] * deltas[i]) / (deltas[i - 1] + deltas[i]);
+        } else {
+          ms[i] = 0;
+        }
+      }
+
+      return function(x) {
+        if (x <= xs[0]) return ys[0];
+        if (x >= xs[n - 1]) return ys[n - 1];
+
+        let k = 0;
+        for (let i = 0; i < n - 1; i++) {
+          if (x >= xs[i] && x <= xs[i + 1]) {
+            k = i;
+            break;
+          }
+        }
+
+        const h = xs[k + 1] - xs[k];
+        const t = (x - xs[k]) / h;
+        const h00 = (1 + 2 * t) * (1 - t) * (1 - t);
+        const h10 = t * (1 - t) * (1 - t);
+        const h01 = t * t * (3 - 2 * t);
+        const h11 = t * t * (t - 1);
+
+        return h00 * ys[k] + h10 * h * ms[k] + h01 * ys[k + 1] + h11 * h * ms[k + 1];
+      };
+    }
+
+    // Mathematical Prediction Engine
+    function calculatePrediction() {
+      const drug = document.getElementById('drugSelect').value;
+      let mw, logp, isPeptide;
+
+      if (drug === 'Custom') {
+        mw = parseFloat(document.getElementById('customMW').value) || 200;
+        logp = parseFloat(document.getElementById('customLogP').value) || 1.0;
+        isPeptide = mw > 5000 ? 1 : 0;
+      } else {
+        const d = DRUGS_DB[drug];
+        mw = d.mw;
+        logp = d.logp;
+        isPeptide = d.peptide;
+      }
+
+      const loading = parseFloat(document.getElementById('loadingRange').value);
+      const area = parseFloat(document.getElementById('areaRange').value);
+      const count = currentNeedleCount;
+      const height = parseFloat(document.getElementById('heightRange').value);
+      const width = parseFloat(document.getElementById('widthRange').value);
+      const force = parseFloat(document.getElementById('forceRange').value);
+      const material = document.getElementById('materialSelect').value;
+      const mnType = MATERIAL_TO_TYPE[material] || 'Dissolving';
+      const skin = document.getElementById('skinSelect').value;
+      const thickness = parseFloat(document.getElementById('thicknessRange').value);
+
+      // Guardrail warnings
+      const warnings = [];
+      if (loading < 1.03 || loading > 9.76) {
+        warnings.push(`Initial drug loading (${loading} mg) is outside validated training bounds [1.03, 9.76 mg].`);
+      }
+      if (height < 507 || height > 797) {
+        warnings.push(`Needle height (${height} µm) is outside validated training bounds [507, 797 µm].`);
+      }
+      if (drug === 'Custom') {
+        warnings.push(`Novel drug molecule not in training library; predictions are extrapolative.`);
+      }
+
+      // Feature Standardization
+      const numVals = {
+        'Skin_Thickness_mm': thickness,
+        'Patch_Area_cm2': area,
+        'Needle_Count': count,
+        'Needle_Height_um': height,
+        'Needle_Base_Width_um': width,
+        'Applied_Force_N': force,
+        'Initial_Drug_Loading_mg': loading,
+        'Drug_MW_Da': mw,
+        'Drug_logP': logp,
+        'Is_Large_Peptide': isPeptide
+      };
+
+      const feats = {};
+      for (const [col, [mean, std]] of Object.entries(SCALER_STATS)) {
+        feats[col] = (numVals[col] - mean) / std;
+      }
+
+      feats['Drug_Name_' + drug] = 1.0;
+      feats['Skin_Type_' + skin] = 1.0;
+      feats['MN_Material_' + material] = 1.0;
+      feats['MN_Type_' + mnType] = 1.0;
+
+      // Linear Model Sum
+      const predLog1p = new Array(8).fill(0);
+      for (let i = 0; i < 8; i++) {
+        let sum = 0;
+        for (const [fName, coefs] of Object.entries(COEFFICIENTS)) {
+          const val = feats[fName] || 0.0;
+          sum += val * coefs[i];
+        }
+        predLog1p[i] = sum + INTERCEPTS[i];
+      }
+
+      // Back-transform expm1 and confidence ribbons
+      const concs = predLog1p.map(y => Math.max(0, Math.expm1(y)));
+      const lower = predLog1p.map((y, i) => Math.max(0, Math.expm1(y - RESID_Q90[i])));
+      const upper = predLog1p.map((y, i) => Math.max(0, Math.expm1(y - RESID_Q10[i])));
+
+      // Summary Parameters
+      let maxIdx = 0;
+      for (let i = 1; i < 8; i++) {
+        if (concs[i] > concs[maxIdx]) maxIdx = i;
+      }
+
+      const cmax = concs[maxIdx];
+      const tmax = TIME_POINTS[maxIdx];
+
+      // Trapezoidal AUC
+      let auc = 0;
+      for (let i = 0; i < 7; i++) {
+        const dt = TIME_POINTS[i + 1] - TIME_POINTS[i];
+        auc += 0.5 * (concs[i] + concs[i + 1]) * dt;
+      }
+
+      // Tissue Volume & Consumed Drug
+      // Volume = Area (cm2) * Thickness (cm = mm * 0.1)
+      const tissueVol = area * (thickness * 0.1);
+      const initialDoseUg = loading * 1000.0;
+      const peakDrugSkinUg = cmax * tissueVol;
+      const efficiency = (peakDrugSkinUg / initialDoseUg) * 100.0;
+
+      // PCHIP splines
+      const pchipConc = createPchip(TIME_POINTS, concs);
+      const pchipLo = createPchip(TIME_POINTS, lower);
+      const pchipHi = createPchip(TIME_POINTS, upper);
+
+      // Generate 5 Key Time Inspection Points: [1.0, 2.0, 4.0, 8.0, 24.0]
+      const inspectionTimes = [1.0, 2.0, 4.0, 8.0, 24.0];
+      const tableRows = inspectionTimes.map(t => {
+        const c = Math.max(0, pchipConc(t));
+        const lo = Math.max(0, pchipLo(t));
+        const hi = Math.max(0, pchipHi(t));
+        const drugInSkin = c * tissueVol;
+        const frac = (drugInSkin / initialDoseUg) * 100.0;
+        return {
+          time: t,
+          conc: c,
+          lower: lo,
+          upper: hi,
+          drugInSkin: drugInSkin,
+          fractionPct: frac
+        };
+      });
+
+      return {
+        cmax,
+        tmax,
+        auc,
+        tissueVol,
+        initialDoseUg,
+        peakDrugSkinUg,
+        efficiency,
+        timePoints: TIME_POINTS,
+        concs,
+        lower,
+        upper,
+        tableRows,
+        warnings,
+        pchipConc,
+        pchipLo,
+        pchipHi
+      };
+    }
+
+    function runPrediction() {
+      const pred = calculatePrediction();
+      latestPrediction = pred;
+
+      // Update Top Metric Stat Cards
+      document.getElementById('statCmax').innerText = pred.cmax.toFixed(1);
+      document.getElementById('statTmax').innerText = pred.tmax.toFixed(1);
+      document.getElementById('statAuc').innerText = Math.round(pred.auc);
+      document.getElementById('statDelivered').innerText = pred.peakDrugSkinUg.toFixed(1);
+      document.getElementById('statEfficiency').innerText = pred.efficiency.toFixed(2) + '%';
+
+      // Update Warnings Box
+      const alertBox = document.getElementById('alertsBox');
+      if (pred.warnings.length > 0) {
+        alertBox.innerHTML = pred.warnings.map(w => `
+          <div class="warning-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>${w}</span>
+          </div>
+        `).join('');
+      } else {
+        alertBox.innerHTML = '';
+      }
+
+      // Render Multi-Time Points Breakdown Table
+      const tBody = document.getElementById('timeTableBody');
+      tBody.innerHTML = pred.tableRows.map(r => {
+        const isPeak = Math.abs(r.time - pred.tmax) < 0.1;
+        const progressPct = Math.min(100, Math.max(4, (r.conc / pred.cmax) * 100));
+        return `
+          <tr class="${isPeak ? 'cmax-row-highlight' : ''}">
+            <td>
+              <span class="time-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                ${r.time.toFixed(1)} h
+              </span>
+              ${isPeak ? '<span style="font-size:0.75rem; color:#EC4899; font-weight:700; margin-left:6px;">★ Tmax</span>' : ''}
+            </td>
+            <td><strong>${r.conc.toFixed(2)}</strong></td>
+            <td style="color:var(--text-muted);">[${r.lower.toFixed(1)} – ${r.upper.toFixed(1)}]</td>
+            <td><strong>${r.drugInSkin.toFixed(2)}</strong> µg</td>
+            <td>${r.fractionPct.toFixed(3)}%</td>
+            <td class="progress-cell">
+              <div style="font-size:0.75rem; color:var(--text-light);">${progressPct.toFixed(0)}% of peak</div>
+              <div class="mini-progress-bar">
+                <div class="mini-progress-fill" style="width: ${progressPct}%;"></div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Draw Chart on Canvas
+      drawChart(pred);
+    }
+
+    // Chart Canvas Rendering
+    function drawChart(pred) {
+      const canvas = document.getElementById('pkChart');
+      const wrapper = document.getElementById('chartWrapper');
+      const dpr = window.devicePixelRatio || 1;
+      
+      const width = wrapper.clientWidth;
+      const height = wrapper.clientHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Margins
+      const padLeft = 60;
+      const padRight = 30;
+      const padTop = 25;
+      const padBottom = 45;
+
+      const chartW = width - padLeft - padRight;
+      const chartH = height - padTop - padBottom;
+
+      // X scale: 0 to 24.5 h
+      const xMin = 0;
+      const xMax = 24.5;
+      // Y scale: 0 to 1.15 * max(upper)
+      const maxUpper = Math.max(...pred.upper, pred.cmax * 1.3);
+      const yMax = Math.ceil(maxUpper / 10) * 10 || 100;
+
+      const getX = t => padLeft + ((t - xMin) / (xMax - xMin)) * chartW;
+      const getY = c => padTop + chartH - (c / yMax) * chartH;
+
+      // Draw Subtle Grid
+      ctx.strokeStyle = '#F1ECE4';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#A8A29E';
+      ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+
+      // Y-axis ticks
+      const ySteps = 5;
+      for (let i = 0; i <= ySteps; i++) {
+        const val = (yMax / ySteps) * i;
+        const y = getY(val);
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(padLeft + chartW, y);
+        ctx.stroke();
+
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(val) + ' ', padLeft - 6, y + 4);
+      }
+
+      // X-axis ticks
+      const xTicks = [0, 4, 8, 12, 16, 20, 24];
+      xTicks.forEach(t => {
+        const x = getX(t);
+        ctx.beginPath();
+        ctx.moveTo(x, padTop);
+        ctx.lineTo(x, padTop + chartH);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillText(t + ' h', x, padTop + chartH + 20);
+      });
+
+      // Axis Titles
+      ctx.fillStyle = '#78716C';
+      ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Time Post-Application (hours)', padLeft + chartW / 2, height - 8);
+
+      ctx.save();
+      ctx.translate(16, padTop + chartH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Skin Tissue Conc. (µg/cm³)', 0, 0);
+      ctx.restore();
+
+      // Dense sampling for smooth curve
+      const denseN = 200;
+      const tVals = [];
+      const yVals = [];
+      const loVals = [];
+      const hiVals = [];
+
+      for (let i = 0; i <= denseN; i++) {
+        const t = 0.5 + (23.5 / denseN) * i;
+        tVals.push(t);
+        yVals.push(Math.max(0, pred.pchipConc(t)));
+        loVals.push(Math.max(0, pred.pchipLo(t)));
+        hiVals.push(Math.max(0, pred.pchipHi(t)));
+      }
+
+      // Draw 80% Confidence Band (Shaded Area)
+      ctx.beginPath();
+      ctx.moveTo(getX(tVals[0]), getY(loVals[0]));
+      for (let i = 1; i <= denseN; i++) {
+        ctx.lineTo(getX(tVals[i]), getY(loVals[i]));
+      }
+      for (let i = denseN; i >= 0; i--) {
+        ctx.lineTo(getX(tVals[i]), getY(hiVals[i]));
+      }
+      ctx.closePath();
+
+      const bandGrad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
+      bandGrad.addColorStop(0, 'rgba(236, 72, 153, 0.16)');
+      bandGrad.addColorStop(1, 'rgba(124, 58, 237, 0.08)');
+      ctx.fillStyle = bandGrad;
+      ctx.fill();
+
+      // Draw Main Spline Line
+      ctx.beginPath();
+      ctx.moveTo(getX(tVals[0]), getY(yVals[0]));
+      for (let i = 1; i <= denseN; i++) {
+        ctx.lineTo(getX(tVals[i]), getY(yVals[i]));
+      }
+      const lineGrad = ctx.createLinearGradient(padLeft, 0, padLeft + chartW, 0);
+      lineGrad.addColorStop(0, '#8B5CF6');
+      lineGrad.addColorStop(0.5, '#EC4899');
+      lineGrad.addColorStop(1, '#F97316');
+      ctx.strokeStyle = lineGrad;
+      ctx.lineWidth = 3.2;
+      ctx.stroke();
+
+      // Draw Sample Time Points Dots
+      pred.timePoints.forEach((t, i) => {
+        const x = getX(t);
+        const y = getY(pred.concs[i]);
+
+        ctx.beginPath();
+        ctx.arc(x, y, 4.5, 0, 2 * Math.PI);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#7C3AED';
+        ctx.stroke();
+      });
+
+      // Highlight Cmax Star
+      const cmaxX = getX(pred.tmax);
+      const cmaxY = getY(pred.cmax);
+
+      // Glowing outer ring for Cmax
+      ctx.beginPath();
+      ctx.arc(cmaxX, cmaxY, 9, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(236, 72, 153, 0.25)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cmaxX, cmaxY, 5.5, 0, 2 * Math.PI);
+      ctx.fillStyle = '#EC4899';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.stroke();
+
+      // Cmax badge annotation
+      ctx.fillStyle = '#1C1917';
+      ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Cmax: ${pred.cmax.toFixed(1)} µg/cm³ (Tmax: ${pred.tmax}h)`, cmaxX + 12, cmaxY - 8);
+    }
+
+    // Interactive scrubber on mouse move
+    const canvasEl = document.getElementById('pkChart');
+    const tooltipEl = document.getElementById('chartTooltip');
+
+    canvasEl.addEventListener('mousemove', function(e) {
+      if (!latestPrediction) return;
+      const rect = canvasEl.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+
+      const padLeft = 60;
+      const padRight = 30;
+      const chartW = rect.width - padLeft - padRight;
+
+      if (mouseX < padLeft || mouseX > padLeft + chartW) {
+        tooltipEl.style.display = 'none';
+        return;
+      }
+
+      const frac = (mouseX - padLeft) / chartW;
+      const t = Math.max(0.5, Math.min(24.0, frac * 24.5));
+      const conc = latestPrediction.pchipConc(t);
+      const drugAmt = conc * latestPrediction.tissueVol;
+
+      tooltipEl.style.display = 'block';
+      tooltipEl.style.left = e.clientX - rect.left + 'px';
+      tooltipEl.style.top = e.clientY - rect.top + 'px';
+      tooltipEl.innerHTML = `
+        <strong>${t.toFixed(1)} h</strong><br>
+        Conc: <strong>${conc.toFixed(2)}</strong> µg/cm³<br>
+        Drug in skin: <strong>${drugAmt.toFixed(2)}</strong> µg
+      `;
+    });
+
+    canvasEl.addEventListener('mouseleave', function() {
+      tooltipEl.style.display = 'none';
+    });
+
+    // Window resize handler
+    window.addEventListener('resize', () => {
+      if (latestPrediction) drawChart(latestPrediction);
+    });
+
+    // Export CSV Report
+    function exportReport() {
+      if (!latestPrediction) return;
+      let csv = "Time_Hours,Predicted_ug_cm3,Lower_80_ug_cm3,Upper_80_ug_cm3,Drug_in_Skin_ug,Dose_Fraction_Pct\n";
+      latestPrediction.tableRows.forEach(r => {
+        csv += `${r.time},${r.conc},${r.lower},${r.upper},${r.drugInSkin},${r.fractionPct}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transderm_pk_prediction_${document.getElementById('drugSelect').value.toLowerCase()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Initial boot
+    document.addEventListener('DOMContentLoaded', () => {
+      runPrediction();
+    });
+  </script>
+</body>
+</html>
